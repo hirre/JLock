@@ -1,0 +1,32 @@
+{
+	// Use IntelliSense to learn about possible attributes.
+	// Hover to view descriptions of existing attributes.
+	// For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+	"version": "0.2.0",
+	"tasks": [
+		{
+			"label": "openBrowser",
+			"type": "shell",
+			"command": "start",
+			"args": ["http://localhost:8080"],
+			"problemMatcher": []
+		}
+	],
+	"configurations": [
+		{
+			"type": "java",
+			"name": "Debug main",
+			"request": "launch",
+			"mainClass": "${file}"
+		},
+		{
+			"type": "java",
+			"name": "JLockApplication",
+			"request": "launch",
+			"mainClass": "com.jlock.JLock.JLockApplication",
+			"projectName": "JLock",
+			"args": ["--spring-boot.run.arguments=--server.port=8080"],
+			"preLaunchTask": "openBrowser"
+		}
+	]
+}
