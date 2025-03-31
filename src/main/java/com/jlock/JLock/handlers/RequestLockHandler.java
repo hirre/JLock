@@ -31,8 +31,6 @@ public class RequestLockHandler implements RequestHandler<LockRequest, LockRespo
                 return Result.failure("Lock holder ID must not be null");
 
             SharedLock sharedLock = null;
-            LockState lockState = LockState.ERROR;
-            UUID lockHolderId = null;
 
             try {
 
@@ -41,23 +39,20 @@ public class RequestLockHandler implements RequestHandler<LockRequest, LockRespo
 
                 if (sharedLock.getLockState() == LockState.FREE) {
                     sharedLock.setLockState(LockState.WAIT, request.lockHolderId());
-                } else if (sharedLock.getLockState() == LockState.ACQUIRED) {
-
+                    return Result.success(new LockResponse(request.lockHolderId(), LockState.ACQUIRED));
                 }
 
-                lockState = sharedLock.getLockState();
-                lockHolderId = sharedLock.getLockHolderId();
+                return Result.success(new LockResponse(request.lockHolderId(), sharedLock.getLockState()));
 
             } catch (Exception e) {
-                lockState = LockState.ERROR;
+
                 return Result.failure(String.format("%s \nLOCK STATE: %s (%s %s)",
-                        e.getMessage(), lockState, request.lockName(), request.lockHolderId().toString()));
+                        e.getMessage(), LockState.ERROR, request.lockName(), request.lockHolderId().toString()));
             } finally {
+
                 if (sharedLock != null)
                     sharedLock.getLock().unlock();
             }
-
-            return Result.success(new LockResponse(lockHolderId, lockState));
         });
     }
 
