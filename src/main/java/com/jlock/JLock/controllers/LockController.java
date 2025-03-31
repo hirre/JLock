@@ -1,5 +1,7 @@
 package com.jlock.JLock.controllers;
 
+import java.util.concurrent.CompletableFuture;
+
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,12 +24,13 @@ public class LockController {
     }
 
     @GetMapping("/get-lock")
-    public ResponseEntity<LockResponse> getLock(@RequestParam(required = false) LockRequest request) {
-        var result = lockHandler.handle(request);
+    public CompletableFuture<ResponseEntity<LockResponse>> getLock(
+            @RequestParam(required = false) LockRequest request) {
+        return lockHandler.handle(request).thenApply(result -> {
+            if (!result.isSuccess())
+                return ResponseEntity.badRequest().build();
 
-        if (!result.isSuccess())
-            return new ResponseEntity<>(HttpStatusCode.valueOf(400));
-
-        return new ResponseEntity<>(result.getValue(), HttpStatusCode.valueOf(200));
+            return ResponseEntity.ok(result.getValue());
+        });
     }
 }

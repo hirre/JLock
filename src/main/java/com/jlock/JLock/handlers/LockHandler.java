@@ -1,5 +1,8 @@
 package com.jlock.JLock.handlers;
 
+import java.util.concurrent.CompletableFuture;
+
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import com.jlock.JLock.interfaces.RequestHandler;
@@ -11,16 +14,19 @@ import com.jlock.JLock.models.Result;
 public class LockHandler implements RequestHandler<LockRequest, LockResponse> {
 
     @Override
-    public Result<LockResponse> handle(LockRequest request) {
-        var response = new LockResponse();
+    @Async
+    public CompletableFuture<Result<LockResponse>> handle(LockRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            var response = new LockResponse();
 
-        try {
+            try {
 
-        } catch (Exception e) {
-            return Result.failure(e.getMessage());
-        }
+            } catch (Exception e) {
+                return Result.failure(e.getMessage());
+            }
 
-        return Result.success(response);
+            return Result.success(response);
+        });
     }
 
 }
