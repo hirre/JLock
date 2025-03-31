@@ -40,7 +40,9 @@ public class RequestLockHandler implements RequestHandler<LockRequest, LockRespo
                 sharedLock.getLock().lock();
 
                 if (sharedLock.getLockState() == LockState.FREE) {
-                    sharedLock.setLockState(LockState.ACQUIRED, request.lockHolderId());
+                    sharedLock.setLockState(LockState.WAIT, request.lockHolderId());
+                } else if (sharedLock.getLockState() == LockState.ACQUIRED) {
+
                 }
 
                 lockState = sharedLock.getLockState();
