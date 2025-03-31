@@ -9,5 +9,4 @@ public class JLockApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(JLockApplication.class, args);
 	}
-
 }
