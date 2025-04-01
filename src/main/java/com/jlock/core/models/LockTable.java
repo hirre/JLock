@@ -34,6 +34,24 @@ public class LockTable {
         return lockTable.get(key);
     }
 
+    public void releaseAllExpiredLocks() {
+        ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
+
+        lockTable.forEach((_, sharedLock) -> {
+            if (sharedLock.getExpiresAt() != null && sharedLock.getExpiresAt().isBefore(now)) {
+                sharedLock.getInternalLock().lock();
+                try {
+                    if (sharedLock.getExpiresAt().isBefore(now)) {
+                        sharedLock.setLockState(LockState.FREE, new UUID(0L, 0L));
+                    }
+                } finally {
+                    sharedLock.getInternalLock().unlock();
+                }
+            }
+        });
+
+    }
+
     public class SharedLock {
         private final ReentrantLock lock;
         private final String lockName;
@@ -53,7 +71,7 @@ public class LockTable {
         }
 
         public boolean isExpired() {
-            return this.expiresAt != null && ZonedDateTime.now(ZoneOffset.UTC).isAfter(this.expiresAt);
+            return this.expiresAt != null && this.expiresAt.isBefore(ZonedDateTime.now(ZoneOffset.UTC));
         }
 
         public ZonedDateTime getExpiresAt() {
