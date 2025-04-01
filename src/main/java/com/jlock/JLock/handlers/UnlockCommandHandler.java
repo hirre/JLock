@@ -43,10 +43,10 @@ public class UnlockCommandHandler implements CommandHandler<UnlockRequest, Unloc
                         && sharedLock.getLockHolderId().equals(request.lockHolderId())) {
 
                     sharedLock.setLockState(LockState.FREE, new UUID(0L, 0L));
-                    return Result.success(new UnlockResponse(LockState.FREE));
+                    return Result.success(new UnlockResponse(sharedLock.getLockName(), LockState.FREE));
                 }
 
-                return Result.success(new UnlockResponse(sharedLock.getLockState()));
+                return Result.success(new UnlockResponse(sharedLock.getLockName(), sharedLock.getLockState()));
 
             } catch (Exception e) {
 

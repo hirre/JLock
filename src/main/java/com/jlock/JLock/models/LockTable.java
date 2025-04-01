@@ -13,7 +13,7 @@ public class LockTable {
 
     public SharedLock getLock(String key) {
         if (!lockTable.containsKey(key)) {
-            lockTable.put(key, new SharedLock());
+            lockTable.put(key, new SharedLock(key));
         }
 
         return lockTable.get(key);
@@ -21,12 +21,18 @@ public class LockTable {
 
     public class SharedLock {
         private final ReentrantLock lock;
+        private final String lockName;
         private LockState lockState;
         private UUID lockHolderId;
 
-        public SharedLock() {
+        public SharedLock(String lockName) {
             this.lock = new ReentrantLock();
             this.lockState = LockState.FREE;
+            this.lockName = lockName;
+        }
+
+        public String getLockName() {
+            return this.lockName;
         }
 
         public ReentrantLock getLock() {
