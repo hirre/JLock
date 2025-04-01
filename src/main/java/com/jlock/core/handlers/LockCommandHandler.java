@@ -13,9 +13,13 @@ import com.jlock.core.models.LockResponse;
 import com.jlock.core.models.LockState;
 import com.jlock.core.models.LockTable;
 import com.jlock.core.models.Result;
+
+import lombok.extern.slf4j.Slf4j;
+
 import com.jlock.core.models.LockTable.SharedLock;
 
 @Component
+@Slf4j
 public class LockCommandHandler implements CommandHandler<LockRequest, LockResponse> {
     private final LockTable lockTable;
 
@@ -71,10 +75,14 @@ public class LockCommandHandler implements CommandHandler<LockRequest, LockRespo
                                     sharedLock.getCreatedAt(), sharedLock.getUpdatedAt(), sharedLock.getExpiresAt()));
 
             } catch (InterruptedException e) {
+                log.error(e.getMessage(), e);
+
                 return Result.failure(String.format("%s \nLOCK STATE: %s (%s %s)",
                         e.getMessage(), LockState.ERROR, request.lockName(), request.lockHolderId().toString()),
                         LockState.INTERNAL_INTERRUPTION);
             } catch (Exception e) {
+                log.error(e.getMessage(), e);
+
                 return Result.failure(String.format("%s \nLOCK STATE: %s (%s %s)",
                         e.getMessage(), LockState.ERROR, request.lockName(), request.lockHolderId().toString()),
                         LockState.ERROR);

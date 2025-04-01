@@ -10,9 +10,12 @@ import org.springframework.stereotype.Component;
 
 import com.jlock.core.configuration.LockConfig;
 
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.concurrent.locks.ReentrantLock;
 
 @Component
+@Slf4j
 public class LockTable {
     private final ConcurrentHashMap<String, SharedLock> lockTable = new ConcurrentHashMap<>();
     private final Object tableLock = new Object();
@@ -36,6 +39,8 @@ public class LockTable {
 
     public void releaseAllExpiredLocks() {
         ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
+
+        log.debug(String.format("Running lock cleanup at %s", now.toString()));
 
         lockTable.forEach((_, sharedLock) -> {
             if (sharedLock.getExpiresAt() != null && sharedLock.getExpiresAt().isBefore(now)) {
