@@ -13,24 +13,24 @@ import java.util.List;
 @Configuration
 public class OpenApiConfig {
 
-    @Bean
-    public OpenAPI customOpenAPI() {
-        Server localServer = new Server();
-        localServer.setUrl("http://localhost:8080");
-        localServer.setDescription("Development Server");
+        @Bean
+        public OpenAPI customOpenAPI() {
+                Server localServer = new Server();
+                localServer.setUrl("http://localhost:8080");
+                localServer.setDescription("Development Server");
 
-        License mitLicense = new License()
-                .name("MIT License")
-                .url("https://opensource.org/licenses/MIT");
+                License mitLicense = new License()
+                                .name("MIT License")
+                                .url("https://opensource.org/licenses/MIT");
 
-        Info info = new Info()
-                .title("JLock API")
-                .version("1.0")
-                .description("API for acquiring and releasing distributed locks.")
-                .license(mitLicense);
+                Info info = new Info()
+                                .title("JLock API")
+                                .version("1.0")
+                                .description("API for acquiring and releasing shared locks in distributed systems.")
+                                .license(mitLicense);
 
-        return new OpenAPI()
-                .info(info)
-                .servers(List.of(localServer));
-    }
+                return new OpenAPI()
+                                .info(info)
+                                .servers(List.of(localServer));
+        }
 }
