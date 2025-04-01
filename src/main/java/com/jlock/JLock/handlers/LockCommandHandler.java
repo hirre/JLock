@@ -62,25 +62,17 @@ public class LockCommandHandler implements CommandHandler<LockRequest, LockRespo
                                     sharedLock.getCreatedAt(), sharedLock.getUpdatedAt()));
 
             } catch (InterruptedException e) {
-
-                sharedLock = null;
-
                 return Result.failure(String.format("%s \nLOCK STATE: %s (%s %s)",
                         e.getMessage(), LockState.ERROR, request.lockName(), request.lockHolderId().toString()),
                         LockState.INTERNAL_INTERRUPTION);
             } catch (Exception e) {
-
-                sharedLock = null;
-
                 return Result.failure(String.format("%s \nLOCK STATE: %s (%s %s)",
                         e.getMessage(), LockState.ERROR, request.lockName(), request.lockHolderId().toString()),
                         LockState.ERROR);
             } finally {
-
-                if (sharedLock != null)
+                if (sharedLock != null && sharedLock.getLock().isHeldByCurrentThread())
                     sharedLock.getLock().unlock();
             }
         });
     }
-
 }

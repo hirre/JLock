@@ -11,10 +11,14 @@ import java.util.concurrent.locks.ReentrantLock;
 @Component
 public class LockTable {
     private final ConcurrentHashMap<String, SharedLock> lockTable = new ConcurrentHashMap<>();
+    private final Object tableLock = new Object();
 
     public SharedLock getOrCreateLock(String key) {
         if (!lockTable.containsKey(key)) {
-            lockTable.put(key, new SharedLock(key));
+            synchronized (tableLock) {
+                if (!lockTable.containsKey(key)) // Stampade protection
+                    lockTable.put(key, new SharedLock(key));
+            }
         }
 
         return lockTable.get(key);
