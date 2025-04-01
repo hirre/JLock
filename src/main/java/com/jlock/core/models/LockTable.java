@@ -8,12 +8,20 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Component;
 
+import com.jlock.core.configuration.LockConfig;
+
 import java.util.concurrent.locks.ReentrantLock;
 
 @Component
 public class LockTable {
     private final ConcurrentHashMap<String, SharedLock> lockTable = new ConcurrentHashMap<>();
     private final Object tableLock = new Object();
+
+    private final LockConfig lockConfig;
+
+    public LockTable(LockConfig lockConfig) {
+        this.lockConfig = lockConfig;
+    }
 
     public SharedLock getOrCreateLock(String key) {
         if (!lockTable.containsKey(key)) {
@@ -36,7 +44,7 @@ public class LockTable {
         private ZonedDateTime updatedAt = createdAt;
 
         private ZonedDateTime expiresAt;
-        private final Duration lockTimeout = Duration.ofMinutes(10); // Default 10-minute timeout
+        private final Duration lockTimeout = lockConfig.defaultLockTimeout();
 
         public SharedLock(String lockName) {
             this.lock = new ReentrantLock();
@@ -45,19 +53,19 @@ public class LockTable {
         }
 
         public boolean isExpired() {
-            return expiresAt != null && ZonedDateTime.now(ZoneOffset.UTC).isAfter(expiresAt);
+            return this.expiresAt != null && ZonedDateTime.now(ZoneOffset.UTC).isAfter(this.expiresAt);
         }
 
         public ZonedDateTime getExpiresAt() {
-            return expiresAt;
+            return this.expiresAt;
         }
 
         public ZonedDateTime getCreatedAt() {
-            return createdAt;
+            return this.createdAt;
         }
 
         public ZonedDateTime getUpdatedAt() {
-            return updatedAt;
+            return this.updatedAt;
         }
 
         public String getLockName() {

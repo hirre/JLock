@@ -1,0 +1,5 @@
+{"properties": [{
+  "name": "jlock.default-lock-timeout-minutes",
+  "type": "java.lang.Long",
+  "description": "Lock expiration duration in minutes"
+}]}
