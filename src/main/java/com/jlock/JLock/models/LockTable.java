@@ -78,7 +78,7 @@ public class LockTable {
             this.updatedAt = ZonedDateTime.now(java.time.ZoneOffset.UTC);
 
             if (state != LockState.FREE) {
-                this.expiresAt = ZonedDateTime.now(ZoneOffset.UTC).plus(this.lockTimeout);
+                this.expiresAt = this.updatedAt.plus(this.lockTimeout);
             } else {
                 this.expiresAt = null; // No expiration for free locks
             }
