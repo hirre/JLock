@@ -1,5 +1,7 @@
 package com.jlock.JLock.models;
 
+import java.time.Duration;
+import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,6 +35,23 @@ public class LockTable {
         private final ZonedDateTime createdAt = ZonedDateTime.now(java.time.ZoneOffset.UTC);
         private ZonedDateTime updatedAt = createdAt;
 
+        private ZonedDateTime expiresAt;
+        private final Duration lockTimeout = Duration.ofMinutes(10); // Default 10-minute timeout
+
+        public SharedLock(String lockName) {
+            this.lock = new ReentrantLock();
+            this.lockState = LockState.FREE;
+            this.lockName = lockName;
+        }
+
+        public boolean isExpired() {
+            return expiresAt != null && ZonedDateTime.now(ZoneOffset.UTC).isAfter(expiresAt);
+        }
+
+        public ZonedDateTime getExpiresAt() {
+            return expiresAt;
+        }
+
         public ZonedDateTime getCreatedAt() {
             return createdAt;
         }
@@ -41,17 +60,11 @@ public class LockTable {
             return updatedAt;
         }
 
-        public SharedLock(String lockName) {
-            this.lock = new ReentrantLock();
-            this.lockState = LockState.FREE;
-            this.lockName = lockName;
-        }
-
         public String getLockName() {
             return this.lockName;
         }
 
-        public ReentrantLock getLock() {
+        public ReentrantLock getInternalLock() {
             return this.lock;
         }
 
@@ -63,12 +76,12 @@ public class LockTable {
             this.lockState = state;
             this.lockHolderId = lockHolderId;
             this.updatedAt = ZonedDateTime.now(java.time.ZoneOffset.UTC);
-        }
 
-        public void reset() {
-            this.lockState = LockState.FREE;
-            this.lockHolderId = null;
-            this.updatedAt = ZonedDateTime.now(java.time.ZoneOffset.UTC);
+            if (state != LockState.FREE) {
+                this.expiresAt = ZonedDateTime.now(ZoneOffset.UTC).plus(this.lockTimeout);
+            } else {
+                this.expiresAt = null; // No expiration for free locks
+            }
         }
 
         public LockState getLockState() {

@@ -37,9 +37,15 @@ public class LockCommandHandler implements CommandHandler<LockRequest, LockRespo
 
                 sharedLock = lockTable.getOrCreateLock(request.lockName());
 
-                if (!sharedLock.getLock().tryLock(5, TimeUnit.SECONDS)) {
+                if (!sharedLock.getInternalLock().tryLock(5, TimeUnit.SECONDS)) {
                     sharedLock = null;
                     return Result.failure("Failed getting lock", LockState.INTERNAL_WAIT);
+                }
+
+                // Check and reset if expired
+                if (sharedLock.isExpired() && sharedLock.getLockState() != LockState.FREE) {
+                    // Log that we're auto-resetting an expired lock
+                    sharedLock.setLockState(LockState.FREE, new UUID(0L, 0L));
                 }
 
                 // If the lock is free we can set it to WAIT globally to indicate this client
@@ -47,7 +53,8 @@ public class LockCommandHandler implements CommandHandler<LockRequest, LockRespo
                 if (sharedLock.getLockState() == LockState.FREE) {
                     sharedLock.setLockState(LockState.WAIT, request.lockHolderId());
                     return Result.success(new LockResponse(sharedLock.getLockName(),
-                            LockState.ACQUIRED, sharedLock.getCreatedAt(), sharedLock.getUpdatedAt()),
+                            LockState.ACQUIRED, sharedLock.getCreatedAt(), sharedLock.getUpdatedAt(), sharedLock
+                                    .getExpiresAt()),
                             LockState.ACQUIRED);
                 }
 
@@ -57,11 +64,11 @@ public class LockCommandHandler implements CommandHandler<LockRequest, LockRespo
                 if (request.lockHolderId().equals(sharedLock.getLockHolderId()))
                     return Result.success(new LockResponse(sharedLock.getLockName(),
                             LockState.ACQUIRED, sharedLock.getCreatedAt(),
-                            sharedLock.getUpdatedAt()));
+                            sharedLock.getUpdatedAt(), sharedLock.getExpiresAt()));
                 else
                     return Result.success(
                             new LockResponse(sharedLock.getLockName(), sharedLock.getLockState(),
-                                    sharedLock.getCreatedAt(), sharedLock.getUpdatedAt()));
+                                    sharedLock.getCreatedAt(), sharedLock.getUpdatedAt(), sharedLock.getExpiresAt()));
 
             } catch (InterruptedException e) {
                 return Result.failure(String.format("%s \nLOCK STATE: %s (%s %s)",
@@ -72,8 +79,8 @@ public class LockCommandHandler implements CommandHandler<LockRequest, LockRespo
                         e.getMessage(), LockState.ERROR, request.lockName(), request.lockHolderId().toString()),
                         LockState.ERROR);
             } finally {
-                if (sharedLock != null && sharedLock.getLock().isHeldByCurrentThread())
-                    sharedLock.getLock().unlock();
+                if (sharedLock != null && sharedLock.getInternalLock().isHeldByCurrentThread())
+                    sharedLock.getInternalLock().unlock();
             }
         });
     }
