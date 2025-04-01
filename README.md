@@ -3,7 +3,13 @@ JLock is a non-blocking asynchronous locking service for distributed systems.
 
 ![image](https://github.com/user-attachments/assets/0262b311-ecf3-43a5-823f-e42b82d6ca95)
 
+- **lockName**: the name of the lock ("default" if omitted)
+- **lockHolderId**: unique ID for each client
+
+
 ## Example:
+
+<ins>**Request:**</ins>
 
 **POST api/locks/lock**
 
@@ -14,7 +20,7 @@ JLock is a non-blocking asynchronous locking service for distributed systems.
 }
 ```
 
-**Responses:**
+<ins>**Responses:**</ins>
 
 201 (state change occured by request):
 ```
@@ -36,6 +42,12 @@ JLock is a non-blocking asynchronous locking service for distributed systems.
 }
 ```
 
+400:
+
+Bad request
+
+<ins>**Request:**</ins>
+
 **POST api/locks/unlock**
 
 ```
@@ -45,7 +57,7 @@ JLock is a non-blocking asynchronous locking service for distributed systems.
 }
 ```
 
-**Responses:**
+<ins>**Responses:**</ins>
 
 201 (state change occured by request):
 ```
@@ -66,3 +78,7 @@ JLock is a non-blocking asynchronous locking service for distributed systems.
   "updatedAt": "2025-04-01T12:04:33.485Z"
 }
 ```
+
+400:
+
+Bad request
