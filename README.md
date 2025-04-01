@@ -1,4 +1,4 @@
-# JLock - A Distributed Lock Service
+# JLock - A Locking Service for Distributed Systems
 JLock is a non-blocking asynchronous locking service for distributed systems.
 
 ![image](https://github.com/user-attachments/assets/0262b311-ecf3-43a5-823f-e42b82d6ca95)
@@ -45,6 +45,8 @@ JLock is a non-blocking asynchronous locking service for distributed systems.
 400:
 
 Bad request
+
+---
 
 <ins>**Request:**</ins>
 
