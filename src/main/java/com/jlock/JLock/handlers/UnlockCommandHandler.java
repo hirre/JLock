@@ -43,10 +43,21 @@ public class UnlockCommandHandler implements CommandHandler<UnlockRequest, Unloc
                         && sharedLock.getLockHolderId().equals(request.lockHolderId())) {
 
                     sharedLock.setLockState(LockState.FREE, new UUID(0L, 0L));
-                    return Result.success(new UnlockResponse(sharedLock.getLockName(), LockState.FREE));
+
+                    return Result.success(new UnlockResponse(sharedLock.getLockName(), LockState.FREE,
+                            sharedLock.getCreatedAt(), sharedLock.getUpdatedAt()), LockState.FREE);
+
+                    // Default initialized value, if unlock is called before lock
+                } else if (sharedLock.getLockState() == LockState.FREE && sharedLock.getLockHolderId() == null) {
+
+                    sharedLock.setLockState(LockState.FREE, request.lockHolderId());
+
+                    return Result.success(new UnlockResponse(sharedLock.getLockName(), sharedLock.getLockState(),
+                            sharedLock.getCreatedAt(), sharedLock.getUpdatedAt()), LockState.FREE);
                 }
 
-                return Result.success(new UnlockResponse(sharedLock.getLockName(), sharedLock.getLockState()));
+                return Result.success(new UnlockResponse(sharedLock.getLockName(), sharedLock.getLockState(),
+                        sharedLock.getCreatedAt(), sharedLock.getUpdatedAt()));
 
             } catch (Exception e) {
 

@@ -42,17 +42,19 @@ public class LockCommandHandler implements CommandHandler<LockRequest, LockRespo
                 if (sharedLock.getLockState() == LockState.FREE) {
                     sharedLock.setLockState(LockState.WAIT, request.lockHolderId());
                     return Result.success(new LockResponse(sharedLock.getLockName(), sharedLock.getLockHolderId(),
-                            LockState.ACQUIRED));
+                            LockState.ACQUIRED, sharedLock.getCreatedAt(), sharedLock.getUpdatedAt()));
                 }
 
                 // If the client request has the same UUID as the lock we can reveal it,
                 // otherwise set to 0 for other clients
                 if (request.lockHolderId().equals(sharedLock.getLockHolderId()))
                     return Result.success(new LockResponse(sharedLock.getLockName(),
-                            sharedLock.getLockHolderId(), sharedLock.getLockState()));
+                            sharedLock.getLockHolderId(), sharedLock.getLockState(), sharedLock.getCreatedAt(),
+                            sharedLock.getUpdatedAt()));
                 else
                     return Result.success(
-                            new LockResponse(sharedLock.getLockName(), new UUID(0L, 0L), sharedLock.getLockState()));
+                            new LockResponse(sharedLock.getLockName(), new UUID(0L, 0L), sharedLock.getLockState(),
+                                    sharedLock.getCreatedAt(), sharedLock.getUpdatedAt()));
 
             } catch (Exception e) {
 

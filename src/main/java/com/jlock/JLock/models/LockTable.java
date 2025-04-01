@@ -1,5 +1,6 @@
 package com.jlock.JLock.models;
 
+import java.time.ZonedDateTime;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -23,7 +24,18 @@ public class LockTable {
         private final ReentrantLock lock;
         private final String lockName;
         private LockState lockState;
-        private UUID lockHolderId;
+        private UUID lockHolderId = null;
+
+        private final ZonedDateTime createdAt = ZonedDateTime.now(java.time.ZoneOffset.UTC);
+        private ZonedDateTime updatedAt = createdAt;
+
+        public ZonedDateTime getCreatedAt() {
+            return createdAt;
+        }
+
+        public ZonedDateTime getUpdatedAt() {
+            return updatedAt;
+        }
 
         public SharedLock(String lockName) {
             this.lock = new ReentrantLock();
@@ -46,6 +58,7 @@ public class LockTable {
         public void setLockState(LockState state, UUID lockHolderId) {
             this.lockState = state;
             this.lockHolderId = lockHolderId;
+            this.updatedAt = ZonedDateTime.now(java.time.ZoneOffset.UTC);
         }
 
         public LockState getLockState() {

@@ -5,6 +5,7 @@ public class Result<T> {
     private boolean isSuccess = false;
     private String errorMsg = null;
     private T value = null;
+    private Object extraParameter = null;
 
     private Result() {
     }
@@ -21,11 +22,20 @@ public class Result<T> {
         return errorMsg;
     }
 
-    public static <T> Result<T> success(T value) {
+    public Object getExtraParameter() {
+        return extraParameter;
+    }
+
+    public static <T> Result<T> success(T value, Object extraParameter) {
         var result = new Result<T>();
         result.isSuccess = true;
         result.value = value;
+        result.extraParameter = extraParameter;
         return result;
+    }
+
+    public static <T> Result<T> success(T value) {
+        return Result.success(value, null);
     }
 
     public static <T> Result<T> failure(String errMsg) {
