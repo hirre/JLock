@@ -2,6 +2,7 @@ package com.jlock.JLock.handlers;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -30,12 +31,16 @@ public class UnlockCommandHandler implements CommandHandler<UnlockRequest, Unloc
             if (request.lockHolderId() == null)
                 return Result.failure("Lock holder ID must not be null");
 
-            SharedLock sharedLock = null;
+            var sharedLock = lockTable.getLock(request.lockName());
 
             try {
 
                 sharedLock = lockTable.getLock(request.lockName());
-                sharedLock.getLock().lock();
+
+                if (!sharedLock.getLock().tryLock(5, TimeUnit.SECONDS)) {
+                    sharedLock = null;
+                    return Result.failure("Failed getting lock", LockState.INTERNAL_WAIT);
+                }
 
                 // If the lock isn't free and the client request UUID is the same as the stored
                 // one, then we can unlock
@@ -59,10 +64,20 @@ public class UnlockCommandHandler implements CommandHandler<UnlockRequest, Unloc
                 return Result.success(new UnlockResponse(sharedLock.getLockName(), sharedLock.getLockState(),
                         sharedLock.getCreatedAt(), sharedLock.getUpdatedAt()));
 
-            } catch (Exception e) {
+            } catch (InterruptedException e) {
+
+                sharedLock = null;
 
                 return Result.failure(String.format("%s \nLOCK STATE: %s (%s %s)",
-                        e.getMessage(), LockState.ERROR, request.lockName(), request.lockHolderId().toString()));
+                        e.getMessage(), LockState.ERROR, request.lockName(), request.lockHolderId().toString()),
+                        LockState.INTERNAL_INTERRUPTION);
+            } catch (Exception e) {
+
+                sharedLock = null;
+
+                return Result.failure(String.format("%s \nLOCK STATE: %s (%s %s)",
+                        e.getMessage(), LockState.ERROR, request.lockName(), request.lockHolderId().toString()),
+                        LockState.ERROR);
             } finally {
 
                 if (sharedLock != null)

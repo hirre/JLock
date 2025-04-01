@@ -61,6 +61,12 @@ public class LockTable {
             this.updatedAt = ZonedDateTime.now(java.time.ZoneOffset.UTC);
         }
 
+        public void reset() {
+            this.lockState = LockState.FREE;
+            this.lockHolderId = null;
+            this.updatedAt = ZonedDateTime.now(java.time.ZoneOffset.UTC);
+        }
+
         public LockState getLockState() {
             return this.lockState;
         }

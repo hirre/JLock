@@ -31,6 +31,7 @@ public class Result<T> {
         result.isSuccess = true;
         result.value = value;
         result.extraParameter = extraParameter;
+
         return result;
     }
 
@@ -38,14 +39,20 @@ public class Result<T> {
         return Result.success(value, null);
     }
 
-    public static <T> Result<T> failure(String errMsg) {
+    public static <T> Result<T> failure(String errMsg, Object extraParameter) {
         var result = new Result<T>();
         result.isSuccess = false;
         result.errorMsg = errMsg;
+        result.extraParameter = extraParameter;
+
         return result;
     }
 
+    public static <T> Result<T> failure(String errMsg) {
+        return failure(errMsg, null);
+    }
+
     public static <T> Result<T> failure() {
-        return failure(null);
+        return failure(null, null);
     }
 }

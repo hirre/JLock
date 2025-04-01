@@ -2,6 +2,7 @@ package com.jlock.JLock.handlers;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
@@ -35,7 +36,11 @@ public class LockCommandHandler implements CommandHandler<LockRequest, LockRespo
             try {
 
                 sharedLock = lockTable.getLock(request.lockName());
-                sharedLock.getLock().lock();
+
+                if (!sharedLock.getLock().tryLock(5, TimeUnit.SECONDS)) {
+                    sharedLock = null;
+                    return Result.failure("Failed getting lock", LockState.INTERNAL_WAIT);
+                }
 
                 // If the lock is free we can set it to WAIT globally to indicate this client
                 // has it, we return ACQUIRED for this specific response though
@@ -56,10 +61,20 @@ public class LockCommandHandler implements CommandHandler<LockRequest, LockRespo
                             new LockResponse(sharedLock.getLockName(), new UUID(0L, 0L), sharedLock.getLockState(),
                                     sharedLock.getCreatedAt(), sharedLock.getUpdatedAt()));
 
-            } catch (Exception e) {
+            } catch (InterruptedException e) {
+
+                sharedLock = null;
 
                 return Result.failure(String.format("%s \nLOCK STATE: %s (%s %s)",
-                        e.getMessage(), LockState.ERROR, request.lockName(), request.lockHolderId().toString()));
+                        e.getMessage(), LockState.ERROR, request.lockName(), request.lockHolderId().toString()),
+                        LockState.INTERNAL_INTERRUPTION);
+            } catch (Exception e) {
+
+                sharedLock = null;
+
+                return Result.failure(String.format("%s \nLOCK STATE: %s (%s %s)",
+                        e.getMessage(), LockState.ERROR, request.lockName(), request.lockHolderId().toString()),
+                        LockState.ERROR);
             } finally {
 
                 if (sharedLock != null)

@@ -49,6 +49,10 @@ public class LockController {
             if (!result.isSuccess()) {
                 ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
                 problem.setTitle(result.getErrorMessage());
+
+                if (result.getExtraParameter() != null && result.getExtraParameter() instanceof LockState)
+                    problem.setDetail(((LockState) result.getExtraParameter()).toString());
+
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem);
             }
 
@@ -72,6 +76,10 @@ public class LockController {
             if (!result.isSuccess()) {
                 ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
                 problem.setTitle(result.getErrorMessage());
+
+                if (result.getExtraParameter() != null && result.getExtraParameter() instanceof LockState)
+                    problem.setDetail(((LockState) result.getExtraParameter()).toString());
+
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem);
             }
 

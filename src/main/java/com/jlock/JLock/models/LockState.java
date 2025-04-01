@@ -4,5 +4,7 @@ public enum LockState {
     ERROR,
     FREE,
     ACQUIRED,
-    WAIT;
+    WAIT,
+    INTERNAL_WAIT,
+    INTERNAL_INTERRUPTION;
 }
