@@ -1,4 +1,4 @@
-package com.jlock.JLock.handlers;
+package com.jlock.core.handlers;
 
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -7,13 +7,13 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import com.jlock.JLock.interfaces.CommandHandler;
-import com.jlock.JLock.models.LockState;
-import com.jlock.JLock.models.LockTable;
-import com.jlock.JLock.models.LockTable.SharedLock;
-import com.jlock.JLock.models.Result;
-import com.jlock.JLock.models.UnlockRequest;
-import com.jlock.JLock.models.UnlockResponse;
+import com.jlock.core.interfaces.CommandHandler;
+import com.jlock.core.models.LockState;
+import com.jlock.core.models.LockTable;
+import com.jlock.core.models.Result;
+import com.jlock.core.models.UnlockRequest;
+import com.jlock.core.models.UnlockResponse;
+import com.jlock.core.models.LockTable.SharedLock;
 
 @Component
 public class UnlockCommandHandler implements CommandHandler<UnlockRequest, UnlockResponse> {

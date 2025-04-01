@@ -1,8 +1,8 @@
-package com.jlock.JLock.models;
+package com.jlock.core.models;
 
 import java.time.ZonedDateTime;
 
-import com.jlock.JLock.interfaces.CommandResponse;
+import com.jlock.core.interfaces.CommandResponse;
 
 public record UnlockResponse(String lockName, LockState lockState, ZonedDateTime createdAt,
                 ZonedDateTime updatedAt, ZonedDateTime expiresAt) implements CommandResponse {

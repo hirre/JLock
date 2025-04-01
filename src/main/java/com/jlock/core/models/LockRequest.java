@@ -1,8 +1,8 @@
-package com.jlock.JLock.models;
+package com.jlock.core.models;
 
 import java.util.UUID;
 
-import com.jlock.JLock.interfaces.Command;
+import com.jlock.core.interfaces.Command;
 
 public record LockRequest(String lockName, UUID lockHolderId) implements Command {
     public LockRequest {

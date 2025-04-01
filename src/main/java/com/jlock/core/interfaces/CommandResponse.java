@@ -1,4 +1,4 @@
-package com.jlock.JLock.interfaces;
+package com.jlock.core.interfaces;
 
 public interface CommandResponse {
 

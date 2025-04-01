@@ -9,7 +9,7 @@
 			"type": "java",
 			"name": "Run Debug & Swagger",
 			"request": "launch",
-			"mainClass": "com.jlock.JLock.JLockApplication",
+			"mainClass": "com.jlock.core.JLockApplication",
 			"projectName": "JLock",
 			"args": ["--spring-boot.run.arguments=--server.port=8080"],
 			"preLaunchTask": "openSwagger"

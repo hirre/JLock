@@ -1,4 +1,4 @@
-package com.jlock.JLock.models;
+package com.jlock.core.models;
 
 import java.time.Duration;
 import java.time.ZoneOffset;

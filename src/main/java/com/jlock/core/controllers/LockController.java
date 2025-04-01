@@ -1,4 +1,4 @@
-package com.jlock.JLock.controllers;
+package com.jlock.core.controllers;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -6,16 +6,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.jlock.core.interfaces.CommandHandler;
+import com.jlock.core.models.LockRequest;
+import com.jlock.core.models.LockResponse;
+import com.jlock.core.models.LockState;
+import com.jlock.core.models.UnlockRequest;
+import com.jlock.core.models.UnlockResponse;
+
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-
-import com.jlock.JLock.interfaces.CommandHandler;
-import com.jlock.JLock.models.LockRequest;
-import com.jlock.JLock.models.LockResponse;
-import com.jlock.JLock.models.LockState;
-import com.jlock.JLock.models.UnlockRequest;
-import com.jlock.JLock.models.UnlockResponse;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
