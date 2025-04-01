@@ -56,7 +56,10 @@ public class LockController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problem);
             }
 
-            if (result.getValue().lockState() == LockState.ACQUIRED)
+            if (result.getValue().lockState() == LockState.ACQUIRED &&
+                    result.getExtraParameter() != null &&
+                    result.getExtraParameter() instanceof LockState &&
+                    ((LockState) result.getExtraParameter()) == LockState.ACQUIRED)
                 return ResponseEntity.status(201).body(result.getValue());
             else
                 return ResponseEntity.ok(result.getValue());

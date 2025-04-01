@@ -46,19 +46,21 @@ public class LockCommandHandler implements CommandHandler<LockRequest, LockRespo
                 // has it, we return ACQUIRED for this specific response though
                 if (sharedLock.getLockState() == LockState.FREE) {
                     sharedLock.setLockState(LockState.WAIT, request.lockHolderId());
-                    return Result.success(new LockResponse(sharedLock.getLockName(), sharedLock.getLockHolderId(),
-                            LockState.ACQUIRED, sharedLock.getCreatedAt(), sharedLock.getUpdatedAt()));
+                    return Result.success(new LockResponse(sharedLock.getLockName(),
+                            LockState.ACQUIRED, sharedLock.getCreatedAt(), sharedLock.getUpdatedAt()),
+                            LockState.ACQUIRED);
                 }
 
-                // If the client request has the same UUID as the lock we can reveal it,
-                // otherwise set to 0 for other clients
+                // If the client request has the same UUID as the lock in the storage we can set
+                // the returned response state to ACQUIRED, indicating to the client that it has
+                // the lock, otherwise return the stored state
                 if (request.lockHolderId().equals(sharedLock.getLockHolderId()))
                     return Result.success(new LockResponse(sharedLock.getLockName(),
-                            sharedLock.getLockHolderId(), sharedLock.getLockState(), sharedLock.getCreatedAt(),
+                            LockState.ACQUIRED, sharedLock.getCreatedAt(),
                             sharedLock.getUpdatedAt()));
                 else
                     return Result.success(
-                            new LockResponse(sharedLock.getLockName(), new UUID(0L, 0L), sharedLock.getLockState(),
+                            new LockResponse(sharedLock.getLockName(), sharedLock.getLockState(),
                                     sharedLock.getCreatedAt(), sharedLock.getUpdatedAt()));
 
             } catch (InterruptedException e) {
