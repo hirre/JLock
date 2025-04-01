@@ -1,5 +1,5 @@
 package com.jlock.JLock.interfaces;
 
-public interface ResponseDto {
+public interface Command {
 
 }

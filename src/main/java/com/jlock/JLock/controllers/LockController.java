@@ -10,16 +10,16 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.jlock.JLock.handlers.RequestLockHandler;
+import com.jlock.JLock.handlers.LockCommandHandler;
 import com.jlock.JLock.models.LockRequest;
 
 @RestController
 @RequestMapping("/api/locks")
 public class LockController {
 
-    private final RequestLockHandler lockHandler;
+    private final LockCommandHandler lockHandler;
 
-    public LockController(RequestLockHandler lockHandler) {
+    public LockController(LockCommandHandler lockHandler) {
         this.lockHandler = lockHandler;
     }
 

@@ -4,6 +4,6 @@ import java.util.concurrent.CompletableFuture;
 
 import com.jlock.JLock.models.Result;
 
-public interface RequestHandler<TRequest extends RequestDto, TResponse extends ResponseDto> {
+public interface CommandHandler<TRequest extends Command, TResponse extends CommandResponse> {
     CompletableFuture<Result<TResponse>> handle(TRequest request);
 }
