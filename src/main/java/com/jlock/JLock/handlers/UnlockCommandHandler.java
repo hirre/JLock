@@ -31,7 +31,7 @@ public class UnlockCommandHandler implements CommandHandler<UnlockRequest, Unloc
             if (request.lockHolderId() == null)
                 return Result.failure("Lock holder ID must not be null");
 
-            var sharedLock = lockTable.getOrCreateLock(request.lockName());
+            SharedLock sharedLock = null;
 
             try {
 
