@@ -17,7 +17,12 @@
     <description>Distributed Lock Service</description>
     <url />
     <licenses>
-        <license />
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/licenses/MIT</url>
+            <distribution>repo</distribution>
+            <comments>A short description of the license</comments>
+        </license>
     </licenses>
     <developers>
         <developer />
