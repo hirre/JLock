@@ -12,7 +12,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class LockTable {
     private final ConcurrentHashMap<String, SharedLock> lockTable = new ConcurrentHashMap<>();
 
-    public SharedLock getLock(String key) {
+    public SharedLock getOrCreateLock(String key) {
         if (!lockTable.containsKey(key)) {
             lockTable.put(key, new SharedLock(key));
         }

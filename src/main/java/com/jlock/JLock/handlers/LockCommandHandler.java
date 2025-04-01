@@ -35,7 +35,7 @@ public class LockCommandHandler implements CommandHandler<LockRequest, LockRespo
 
             try {
 
-                sharedLock = lockTable.getLock(request.lockName());
+                sharedLock = lockTable.getOrCreateLock(request.lockName());
 
                 if (!sharedLock.getLock().tryLock(5, TimeUnit.SECONDS)) {
                     sharedLock = null;
