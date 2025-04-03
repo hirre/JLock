@@ -3,6 +3,7 @@ package com.jlock.core.models;
 import java.time.Duration;
 import java.time.ZonedDateTime;
 import java.util.UUID;
+import java.util.concurrent.ExecutionException;
 
 import lombok.Getter;
 
@@ -15,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
@@ -39,20 +39,21 @@ public class LockTable {
     }
 
     public SharedLock getOrCreateLock(String key) {
-        if (lockStorage.getIfPresent(key) == null) {
-            synchronized (tableLock) {
-                if (lockStorage.getIfPresent(key) == null) // Stampade protection
-                    lockStorage.put(key, new SharedLock(key));
-            }
-        }
+        try {
+            var lock = lockStorage.get(key, () -> {
+                return new SharedLock(key);
+            });
 
-        var sharedLock = lockStorage.getIfPresent(key);
-        sharedLock.setExpiresAt(ZonedDateTime.now(java.time.ZoneOffset.UTC).plus(lockTimeout));
-        return sharedLock;
+            lock.setExpiresAt(ZonedDateTime.now(java.time.ZoneOffset.UTC).plus(lockTimeout));
+
+            return lock;
+        } catch (ExecutionException e) {
+            log.error("Error creating lock for key: {}", key, e);
+            throw new RuntimeException(e);
+        }
     }
 
     // For testing purposes, don't use
-    @VisibleForTesting
     public void clearLocks() {
         synchronized (tableLock) {
             lockStorage.asMap().forEach((_, v) -> {
@@ -100,7 +101,7 @@ public class LockTable {
             return this.lock;
         }
 
-        public void setLockState(LockState state, UUID lockHolderId) {
+        public synchronized void setLockState(LockState state, UUID lockHolderId) {
             this.lockState = state;
             this.lockHolderId = lockHolderId;
             this.updatedAt = ZonedDateTime.now(java.time.ZoneOffset.UTC);

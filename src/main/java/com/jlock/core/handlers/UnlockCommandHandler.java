@@ -30,10 +30,11 @@ public class UnlockCommandHandler implements CommandHandler<UnlockRequest, Unloc
     @Override
     @Async
     public CompletableFuture<Result<UnlockResponse>> handle(UnlockRequest request) {
-        return CompletableFuture.supplyAsync(() -> {
+        CompletableFuture<Result<UnlockResponse>> future = CompletableFuture.supplyAsync(() -> {
 
-            if (request.lockHolderId() == null)
-                return Result.failure("Lock holder ID must not be null");
+            if (request.lockHolderId() == null || request.lockName() == null || request.lockName().isEmpty()) {
+                return Result.failure("Invalid unlock request: lockHolderId and lockName must not be null or empty");
+            }
 
             SharedLock sharedLock = null;
 
@@ -42,33 +43,10 @@ public class UnlockCommandHandler implements CommandHandler<UnlockRequest, Unloc
                 sharedLock = lockTable.getOrCreateLock(request.lockName());
 
                 if (!sharedLock.getInternalLock().tryLock(5, TimeUnit.SECONDS)) {
-                    sharedLock = null;
                     return Result.failure("Failed getting lock", LockState.INTERNAL_WAIT);
                 }
 
-                // If the lock isn't free and the client request UUID is the same as the stored
-                // one, then we can unlock
-                if (sharedLock.getLockState() != LockState.FREE
-                        && sharedLock.getLockHolderId().equals(request.lockHolderId())) {
-
-                    sharedLock.setLockState(LockState.FREE, new UUID(0L, 0L));
-
-                    return Result.success(new UnlockResponse(sharedLock.getLockName(), LockState.FREE,
-                            sharedLock.getCreatedAt(), sharedLock.getUpdatedAt(), sharedLock.getExpiresAt()),
-                            LockState.FREE);
-
-                    // Default initialized value, if unlock is called before lock
-                } else if (sharedLock.getLockState() == LockState.FREE && sharedLock.getLockHolderId() == null) {
-
-                    sharedLock.setLockState(LockState.FREE, request.lockHolderId());
-
-                    return Result.success(new UnlockResponse(sharedLock.getLockName(), sharedLock.getLockState(),
-                            sharedLock.getCreatedAt(), sharedLock.getUpdatedAt(),
-                            sharedLock.getExpiresAt()), LockState.FREE);
-                }
-
-                return Result.success(new UnlockResponse(sharedLock.getLockName(), sharedLock.getLockState(),
-                        sharedLock.getCreatedAt(), sharedLock.getUpdatedAt(), sharedLock.getExpiresAt()));
+                return handleUnlock(sharedLock, request);
 
             } catch (InterruptedException e) {
                 log.error(e.getMessage(), e);
@@ -83,10 +61,41 @@ public class UnlockCommandHandler implements CommandHandler<UnlockRequest, Unloc
                         e.getMessage(), LockState.ERROR, request.lockName(), request.lockHolderId().toString()),
                         LockState.ERROR);
             } finally {
-
-                if (sharedLock != null && sharedLock.getInternalLock().isHeldByCurrentThread())
-                    sharedLock.getInternalLock().unlock();
+                if (sharedLock != null && sharedLock.getInternalLock().isHeldByCurrentThread()) {
+                    try {
+                        sharedLock.getInternalLock().unlock();
+                    } catch (IllegalMonitorStateException e) {
+                        log.warn("Attempted to unlock a lock not held by the current thread: {}", e.getMessage());
+                    }
+                }
             }
         });
+
+        future.exceptionally(e -> {
+            log.error("Error in async unlock handling", e);
+            return Result.failure("Internal error occurred");
+        });
+
+        return future;
+    }
+
+    private Result<UnlockResponse> handleUnlock(SharedLock sharedLock, UnlockRequest request) {
+        if (sharedLock.getLockState() != LockState.FREE
+                && sharedLock.getLockHolderId().equals(request.lockHolderId())) {
+            sharedLock.setLockState(LockState.FREE, new UUID(0L, 0L));
+            return Result.success(new UnlockResponse(sharedLock.getLockName(), LockState.FREE,
+                    sharedLock.getCreatedAt(), sharedLock.getUpdatedAt(), sharedLock.getExpiresAt()),
+                    LockState.FREE);
+        }
+
+        if (sharedLock.getLockState() == LockState.FREE && sharedLock.getLockHolderId() == null) {
+            sharedLock.setLockState(LockState.FREE, request.lockHolderId());
+            return Result.success(new UnlockResponse(sharedLock.getLockName(), sharedLock.getLockState(),
+                    sharedLock.getCreatedAt(), sharedLock.getUpdatedAt(), sharedLock.getExpiresAt()),
+                    LockState.FREE);
+        }
+
+        return Result.success(new UnlockResponse(sharedLock.getLockName(), sharedLock.getLockState(),
+                sharedLock.getCreatedAt(), sharedLock.getUpdatedAt(), sharedLock.getExpiresAt()));
     }
 }
