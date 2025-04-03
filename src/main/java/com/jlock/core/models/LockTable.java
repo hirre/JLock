@@ -1,73 +1,94 @@
 package com.jlock.core.models;
 
 import java.time.Duration;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
-import org.springframework.stereotype.Component;
+import lombok.Getter;
+
+import org.springframework.stereotype.Repository;
 
 import com.jlock.core.configuration.LockConfig;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
-@Component
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+
+import lombok.Setter;
+
+@Repository
 @Slf4j
 public class LockTable {
-    private final ConcurrentHashMap<String, SharedLock> lockTable = new ConcurrentHashMap<>();
+
+    private final Duration lockTimeout;
+
+    private final Cache<String, SharedLock> lockStorage;
+
     private final Object tableLock = new Object();
 
-    private final LockConfig lockConfig;
-
     public LockTable(LockConfig lockConfig) {
-        this.lockConfig = lockConfig;
+        this.lockTimeout = lockConfig.defaultLockTimeout();
+        this.lockStorage = CacheBuilder.newBuilder()
+                .expireAfterAccess(lockTimeout.toMinutes(), TimeUnit.MINUTES) // Reset expiration on access
+                .build();
     }
 
     public SharedLock getOrCreateLock(String key) {
-        if (!lockTable.containsKey(key)) {
+        if (lockStorage.getIfPresent(key) == null) {
             synchronized (tableLock) {
-                if (!lockTable.containsKey(key)) // Stampade protection
-                    lockTable.put(key, new SharedLock(key));
+                if (lockStorage.getIfPresent(key) == null) // Stampade protection
+                    lockStorage.put(key, new SharedLock(key));
             }
         }
 
-        return lockTable.get(key);
+        var sharedLock = lockStorage.getIfPresent(key);
+        sharedLock.setExpiresAt(ZonedDateTime.now(java.time.ZoneOffset.UTC).plus(lockTimeout));
+        return sharedLock;
     }
 
-    public void releaseAllExpiredLocks() {
-        ZonedDateTime now = ZonedDateTime.now(ZoneOffset.UTC);
-
-        log.debug(String.format("Running lock cleanup at %s", now.toString()));
-
-        lockTable.forEach((_, sharedLock) -> {
-            if (sharedLock.getExpiresAt() != null && sharedLock.getExpiresAt().isBefore(now)) {
-                sharedLock.getInternalLock().lock();
+    // For testing purposes, don't use
+    @VisibleForTesting
+    public void clearLocks() {
+        synchronized (tableLock) {
+            lockStorage.asMap().forEach((_, v) -> {
                 try {
-                    if (sharedLock.getExpiresAt().isBefore(now)) {
-                        sharedLock.setLockState(LockState.FREE, new UUID(0L, 0L));
-                    }
-                } finally {
-                    sharedLock.getInternalLock().unlock();
+                    v.getInternalLock().unlock();
+                } catch (Exception _) {
                 }
-            }
-        });
+            });
 
+            lockStorage.invalidateAll();
+            lockStorage.cleanUp();
+        }
     }
 
     public class SharedLock {
+
         private final ReentrantLock lock;
+
+        @Getter
         private final String lockName;
+
+        @Getter
         private LockState lockState;
+
+        @Getter
         private UUID lockHolderId = null;
 
+        @Getter
         private final ZonedDateTime createdAt = ZonedDateTime.now(java.time.ZoneOffset.UTC);
+
+        @Getter
         private ZonedDateTime updatedAt = createdAt;
 
+        @Getter
+        @Setter
         private ZonedDateTime expiresAt;
-        private final Duration lockTimeout = lockConfig.defaultLockTimeout();
 
         public SharedLock(String lockName) {
             this.lock = new ReentrantLock();
@@ -75,48 +96,15 @@ public class LockTable {
             this.lockName = lockName;
         }
 
-        public boolean isExpired() {
-            return this.expiresAt != null && this.expiresAt.isBefore(ZonedDateTime.now(ZoneOffset.UTC));
-        }
-
-        public ZonedDateTime getExpiresAt() {
-            return this.expiresAt;
-        }
-
-        public ZonedDateTime getCreatedAt() {
-            return this.createdAt;
-        }
-
-        public ZonedDateTime getUpdatedAt() {
-            return this.updatedAt;
-        }
-
-        public String getLockName() {
-            return this.lockName;
-        }
-
         public ReentrantLock getInternalLock() {
             return this.lock;
-        }
-
-        public UUID getLockHolderId() {
-            return this.lockHolderId;
         }
 
         public void setLockState(LockState state, UUID lockHolderId) {
             this.lockState = state;
             this.lockHolderId = lockHolderId;
             this.updatedAt = ZonedDateTime.now(java.time.ZoneOffset.UTC);
-
-            if (state != LockState.FREE) {
-                this.expiresAt = this.updatedAt.plus(this.lockTimeout);
-            } else {
-                this.expiresAt = null; // No expiration for free locks
-            }
         }
 
-        public LockState getLockState() {
-            return this.lockState;
-        }
     }
 }

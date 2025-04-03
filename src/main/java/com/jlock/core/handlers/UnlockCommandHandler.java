@@ -5,7 +5,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import com.jlock.core.interfaces.CommandHandler;
 import com.jlock.core.models.LockState;
@@ -18,7 +18,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import com.jlock.core.models.LockTable.SharedLock;
 
-@Component
+@Service
 @Slf4j
 public class UnlockCommandHandler implements CommandHandler<UnlockRequest, UnlockResponse> {
     private final LockTable lockTable;
@@ -44,12 +44,6 @@ public class UnlockCommandHandler implements CommandHandler<UnlockRequest, Unloc
                 if (!sharedLock.getInternalLock().tryLock(5, TimeUnit.SECONDS)) {
                     sharedLock = null;
                     return Result.failure("Failed getting lock", LockState.INTERNAL_WAIT);
-                }
-
-                // Check and reset if expired
-                if (sharedLock.isExpired() && sharedLock.getLockState() != LockState.FREE) {
-                    // Log that we're auto-resetting an expired lock
-                    sharedLock.setLockState(LockState.FREE, new UUID(0L, 0L));
                 }
 
                 // If the lock isn't free and the client request UUID is the same as the stored
