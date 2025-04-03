@@ -29,7 +29,7 @@ JLock is a non-blocking asynchronous locking service for distributed systems.
   "lockState": "ACQUIRED",
   "createdAt": "2025-04-01T12:04:33.485Z",
   "updatedAt": "2025-04-01T12:04:33.485Z",
-  "expiresAt": "2025-04-01T12:14:33.485Z"  // Or null if lockState is FREE
+  "expiresAt": "2025-04-01T12:14:33.485Z"
 }
 ```
 
@@ -40,7 +40,7 @@ JLock is a non-blocking asynchronous locking service for distributed systems.
   "lockState": "WAIT",                     // Or ACQUIRED if lockHolderId in request matches the lock in the storage
   "createdAt": "2025-04-01T12:04:33.485Z",
   "updatedAt": "2025-04-01T12:04:33.485Z",
-  "expiresAt": "2025-04-01T12:14:33.485Z"  // Or null if lockState is FREE
+  "expiresAt": "2025-04-01T12:14:33.485Z"
 }
 ```
 
@@ -70,7 +70,7 @@ Bad request
   "lockState": "FREE",
   "createdAt": "2025-04-01T12:04:33.485Z",
   "updatedAt": "2025-04-01T12:04:33.485Z",
-  "expiresAt": "2025-04-01T12:14:33.485Z"  // Or null if lockState is FREE
+  "expiresAt": "2025-04-01T12:14:33.485Z"
 }
 ```
 
@@ -81,7 +81,7 @@ Bad request
   "lockState": "WAIT",                      // Or FREE
   "createdAt": "2025-04-01T12:04:33.485Z",
   "updatedAt": "2025-04-01T12:04:33.485Z"
-  "expiresAt": "2025-04-01T12:14:33.485Z"  // Or null if lockState is FREE
+  "expiresAt": "2025-04-01T12:14:33.485Z"
 }
 ```
 
