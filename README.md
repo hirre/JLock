@@ -1,7 +1,8 @@
 # JLock - A Locking Service for Distributed Systems
 JLock is a non-blocking asynchronous locking service for distributed systems.
 
-![image](https://github.com/user-attachments/assets/0262b311-ecf3-43a5-823f-e42b82d6ca95)
+![image](https://github.com/user-attachments/assets/e88d1e95-c15e-4be1-a2b2-b5b36a367a42)
+
 
 - **lockName**: the name of the lock ("default" if omitted)
 - **lockHolderId**: unique ID for each client
